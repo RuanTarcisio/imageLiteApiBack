@@ -8,6 +8,7 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 import br.com.imageliteapi.domain.enums.ImageExtension;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EntityListeners;
+import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -35,7 +36,7 @@ public class Image {
 	private String name;
 	private Long size;
 	
-	@Enumerated
+	@Enumerated(EnumType.STRING)
 	private ImageExtension extension;
 	
 	@CreatedDate
