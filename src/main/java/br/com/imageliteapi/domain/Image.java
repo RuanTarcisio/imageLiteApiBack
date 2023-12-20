@@ -6,6 +6,7 @@ import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import br.com.imageliteapi.domain.enums.ImageExtension;
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EntityListeners;
 import jakarta.persistence.EnumType;
@@ -38,10 +39,15 @@ public class Image {
 	
 	@Enumerated(EnumType.STRING)
 	private ImageExtension extension;
-	
+	@Column
 	@CreatedDate
 	private LocalDateTime uploadDate;
 	private String tags;
 	@Lob
 	private byte[] file;
+	
+	public String getFileName() {
+		
+		return getName().concat(".").concat(getExtension().name());
+	}
 }

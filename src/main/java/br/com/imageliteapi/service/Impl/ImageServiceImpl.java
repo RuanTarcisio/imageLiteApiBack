@@ -1,5 +1,7 @@
 package br.com.imageliteapi.service.Impl;
 
+import java.util.Optional;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -18,6 +20,13 @@ public class ImageServiceImpl implements ImageService{
 	@Transactional
 	public Image save(Image image) {
 		return repository.save(image);
+	}
+
+	@Override
+	public Optional<Image> getById(String id) {
+		// 
+		return repository.findById(id);
+		
 	}
 		
 }

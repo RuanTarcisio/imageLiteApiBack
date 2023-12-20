@@ -1,9 +1,13 @@
 package br.com.imageliteapi.service;
 
+import java.util.Optional;
+
 import br.com.imageliteapi.domain.Image;
 
 public interface ImageService {
 
-	public Image save(Image image); 
+	Image save(Image image);
+	
+	Optional<Image> getById(String id);
 		
 }

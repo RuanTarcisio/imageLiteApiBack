@@ -5,7 +5,11 @@ import java.net.URI;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -44,6 +48,22 @@ public class ImagesResource {
 
 	}
 
+	@GetMapping(value = "/{id}")
+	public ResponseEntity<byte[]> find(@PathVariable String id) {
+		var possibleImage = service.getById(id);
+		if(possibleImage.isEmpty()) {
+			return ResponseEntity.notFound().build();
+		}
+		
+		var image = possibleImage.get();
+		HttpHeaders headers = new HttpHeaders();
+		headers.setContentType(image.getExtension().getMediaType());
+		headers.setContentLength(image.getSize());
+		headers.setContentDispositionFormData("inline; filename = \"" + image.getFileName() + "\"", image.getFileName());
+		
+		return new ResponseEntity<>(image.getFile(), headers, HttpStatus.OK);
+	}
+	
 	private URI buildImageURL(Image image) {
 		String imagePath = "/" + image.getId();
 		return ServletUriComponentsBuilder
