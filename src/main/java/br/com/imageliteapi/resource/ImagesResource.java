@@ -9,6 +9,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -50,48 +51,45 @@ public class ImagesResource {
 		return ResponseEntity.created(imageUri).build();
 
 	}
-	
-	 @GetMapping
-	    public ResponseEntity<List<ImageDto>> search(
-	            @RequestParam(value = "extension", required = false, defaultValue = "") String extension,
-	            @RequestParam(value = "query",required = false) String query) throws InterruptedException {
 
-	        Thread.sleep(3000L);
+	@CrossOrigin
+	@GetMapping
+	public ResponseEntity<List<ImageDto>> search(
+			@RequestParam(value = "extension", required = false, defaultValue = "") String extension,
+			@RequestParam(value = "query", required = false) String query) throws InterruptedException {
 
-	        var result = service.search(ImageExtension.ofName(extension), query);
+		Thread.sleep(3000L);
 
-	        var images = result.stream().map(image -> {
-	        	var url = buildImageURL(image);
-	        	return imageMapper.imageToDTO(image, url.toString());
-	        }).collect(Collectors.toList());
-	            
+		var result = service.search(ImageExtension.ofName(extension), query);
 
-	        return ResponseEntity.ok(images);
-	    }
+		var images = result.stream().map(image -> {
+			var url = buildImageURL(image);
+			return imageMapper.imageToDTO(image, url.toString());
+		}).collect(Collectors.toList());
+
+		return ResponseEntity.ok(images);
+	}
 
 	@GetMapping(value = "/{id}")
 	public ResponseEntity<byte[]> find(@PathVariable String id) {
 		var possibleImage = service.getById(id);
-		if(possibleImage.isEmpty()) {
+		if (possibleImage.isEmpty()) {
 			return ResponseEntity.notFound().build();
 		}
-		
+
 		var image = possibleImage.get();
 		HttpHeaders headers = new HttpHeaders();
 		headers.setContentType(image.getExtension().getMediaType());
 		headers.setContentLength(image.getSize());
-		headers.setContentDispositionFormData("inline; filename = \"" + image.getFileName() + "\"", image.getFileName());
-		
+		headers.setContentDispositionFormData("inline; filename = \"" + image.getFileName() + "\"",
+				image.getFileName());
+
 		return new ResponseEntity<>(image.getFile(), headers, HttpStatus.OK);
 	}
-	
+
 	private URI buildImageURL(Image image) {
 		String imagePath = "/" + image.getId();
-		return ServletUriComponentsBuilder
-				.fromCurrentRequest()
-				.path(imagePath)
-				.build()
-				.toUri();
-		
+		return ServletUriComponentsBuilder.fromCurrentRequest().path(imagePath).build().toUri();
+
 	}
 }
