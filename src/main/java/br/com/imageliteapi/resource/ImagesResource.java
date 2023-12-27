@@ -3,6 +3,7 @@ package br.com.imageliteapi.resource;
 import java.io.IOException;
 import java.net.URI;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
@@ -18,6 +19,8 @@ import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import br.com.imageliteapi.domain.Image;
+import br.com.imageliteapi.domain.dto.ImageDto;
+import br.com.imageliteapi.domain.enums.ImageExtension;
 import br.com.imageliteapi.mapper.ImageMapper;
 import br.com.imageliteapi.service.ImageService;
 import lombok.RequiredArgsConstructor;
@@ -47,6 +50,24 @@ public class ImagesResource {
 		return ResponseEntity.created(imageUri).build();
 
 	}
+	
+	 @GetMapping
+	    public ResponseEntity<List<ImageDto>> search(
+	            @RequestParam(value = "extension", required = false, defaultValue = "") String extension,
+	            @RequestParam(value = "query",required = false) String query) throws InterruptedException {
+
+	        Thread.sleep(3000L);
+
+	        var result = service.search(ImageExtension.ofName(extension), query);
+
+	        var images = result.stream().map(image -> {
+	        	var url = buildImageURL(image);
+	        	return imageMapper.imageToDTO(image, url.toString());
+	        }).collect(Collectors.toList());
+	            
+
+	        return ResponseEntity.ok(images);
+	    }
 
 	@GetMapping(value = "/{id}")
 	public ResponseEntity<byte[]> find(@PathVariable String id) {

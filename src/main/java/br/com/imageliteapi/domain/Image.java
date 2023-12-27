@@ -38,6 +38,7 @@ public class Image {
 	private Long size;
 	
 	@Enumerated(EnumType.STRING)
+	@Column(name = "extense")
 	private ImageExtension extension;
 	@Column
 	@CreatedDate

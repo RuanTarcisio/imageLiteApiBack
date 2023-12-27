@@ -7,9 +7,7 @@ import org.springframework.http.MediaType;
 import lombok.Getter;
 
 public enum ImageExtension {
-	PNG(MediaType.IMAGE_PNG), 
-	GIF(MediaType.IMAGE_GIF), 
-	JPEG(MediaType.IMAGE_JPEG);
+	PNG(MediaType.IMAGE_PNG), GIF(MediaType.IMAGE_GIF), JPEG(MediaType.IMAGE_JPEG);
 
 	@Getter
 	private MediaType mediaType;
@@ -19,8 +17,10 @@ public enum ImageExtension {
 	}
 
 	public static ImageExtension valueOf(MediaType mediaType) {
-		return Arrays.stream(values()).filter(ie -> ie.mediaType.equals(mediaType))
-				.findFirst()
-				.orElse(null);
+		return Arrays.stream(values()).filter(ie -> ie.mediaType.equals(mediaType)).findFirst().orElse(null);
+	}
+
+	public static ImageExtension ofName(String extension) {
+		return Arrays.stream(values()).filter(ie -> ie.name().equalsIgnoreCase(extension)).findFirst().orElse(null);
 	}
 }

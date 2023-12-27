@@ -1,11 +1,13 @@
 package br.com.imageliteapi.service.Impl;
 
+import java.util.List;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import br.com.imageliteapi.domain.Image;
+import br.com.imageliteapi.domain.enums.ImageExtension;
 import br.com.imageliteapi.repository.ImageRepository;
 import br.com.imageliteapi.service.ImageService;
 import jakarta.transaction.Transactional;
@@ -26,7 +28,10 @@ public class ImageServiceImpl implements ImageService{
 	public Optional<Image> getById(String id) {
 		// 
 		return repository.findById(id);
-		
 	}
-		
+	
+	@Override
+	public List<Image> search(ImageExtension extension, String query){
+		return repository.findByExtensionAndNameOrTagsLike(extension, query);
+	}
 }

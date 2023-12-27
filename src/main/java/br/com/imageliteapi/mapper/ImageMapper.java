@@ -8,6 +8,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.multipart.MultipartFile;
 
 import br.com.imageliteapi.domain.Image;
+import br.com.imageliteapi.domain.dto.ImageDto;
 import br.com.imageliteapi.domain.enums.ImageExtension;
 
 @Component
@@ -23,4 +24,14 @@ public class ImageMapper {
 				.build();
 				
 	}
+
+	 public ImageDto imageToDTO(Image image, String url){
+	        return ImageDto.builder()
+	                .url(url)
+	                .extension(image.getExtension().name())
+	                .name(image.getName())
+	                .size(image.getSize())
+	                .uploadDate(image.getUploadDate().toLocalDate())
+	                .build();
+	    }
 }
