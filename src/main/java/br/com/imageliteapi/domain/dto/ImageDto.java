@@ -6,11 +6,9 @@ import com.fasterxml.jackson.annotation.JsonFormat;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.Data;
 @AllArgsConstructor
-@Getter
-@Setter
+@Data
 @Builder
 public class ImageDto {
 
