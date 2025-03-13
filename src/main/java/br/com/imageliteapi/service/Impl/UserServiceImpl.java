@@ -25,7 +25,7 @@ public class UserServiceImpl implements UserService {
 	@Override
 	public User getByEmail(String email) {
 
-		return repository.findByEmail(email);
+		return repository.findByEmail(email).orElseThrow(() -> new RuntimeException(""));
 	}
 
 	@Override

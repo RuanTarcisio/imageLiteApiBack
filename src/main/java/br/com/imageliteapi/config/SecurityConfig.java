@@ -1,5 +1,9 @@
 package br.com.imageliteapi.config;
 
+import br.com.imageliteapi.security.JwtFilter;
+import br.com.imageliteapi.security.Oauth2LoginSuccessHandler;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -14,41 +18,48 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
-import br.com.imageliteapi.security.JwtFilter;
-import br.com.imageliteapi.security.JwtService;
-import br.com.imageliteapi.service.UserService;
-
 
 @Configuration
 @EnableWebSecurity
+@RequiredArgsConstructor
+@Slf4j
 public class SecurityConfig {
 
+    private final Oauth2LoginSuccessHandler oauth2LoginSuccessHandler;
     @Bean
-    public JwtFilter jwtFilter(){
+    public JwtFilter jwtFilter() {
         return new JwtFilter();
     }
 
     @Bean
-    public PasswordEncoder passwordEncoder(){
+    public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
     }
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http, JwtFilter jwtFilter) throws Exception {
-        return http
+        http
                 .csrf(AbstractHttpConfigurer::disable)
                 .cors(cors -> cors.configure(http))
-                .authorizeHttpRequests( auth -> {
+                .authorizeHttpRequests(auth -> {
                     auth.requestMatchers("/v1/users/**").permitAll();
                     auth.requestMatchers(HttpMethod.GET, "/v1/images/**").authenticated();
                     auth.anyRequest().authenticated();
-                })
-                .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class)
-                .build();
+                });
+        http.oauth2Login(customizer -> {
+            customizer.successHandler(oauth2LoginSuccessHandler);
+            customizer.failureHandler((request, response, exception) -> {
+                log.error("OAuth2 Authentication failed", exception);
+                response.sendRedirect("/login?error=true");
+            });
+        });
+        http.addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
+
+        return http.build();
     }
 
     @Bean
-    public CorsConfigurationSource corsConfigurationSource(){
+    public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration().applyPermitDefaultValues();
 
         UrlBasedCorsConfigurationSource cors = new UrlBasedCorsConfigurationSource();
