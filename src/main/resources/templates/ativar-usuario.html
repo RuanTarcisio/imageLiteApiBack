@@ -1,0 +1,68 @@
+	<!DOCTYPE html>
+	<html xmlns:th="http://www.thymeleaf.org">
+
+	<head>
+		<meta charset="UTF-8" />
+		<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<title>Document</title>
+	</head>
+	<table align="center" border="0" cellpadding="0" cellspacing="0" width="100%"
+		style="max-width: 650px; margin: 0px auto; background: #1d3557; padding: 0%;">
+		<thead>
+			<tr width="200px">
+
+			
+					<span style="margin-left: 60px;margin-right: 10px; ">Cadastro Urls</span>
+				</td>
+				<td>
+
+				</td>
+			</tr>
+		</thead>
+
+		<tbody>
+			<tr>
+				<td style="background: rgb(240, 234, 234); padding: 40px">
+					<h1 style="font-size: 32px">Sua primeira senha de acesso ao cadastro de urls!</h1>
+					<br />
+
+					<p style="font-size: 18px">
+						Verificamos que foi realizado o seu cadastro no sistema de Cadastro de Links, OUVIDORIA SSP
+					</p>
+					<br />
+
+
+					<span style="font-size: 18px;color:crimson;"><strong>CADASTRO DE SENHA	 </strong></span><span
+						style="font-size: 18px;" th:text="${newPassword}"></span><br> <br>
+					<br />
+
+					<p style="font-size: 18px">
+						O primeiro acesso, por questões de segurança só será realizado <br />
+						após o cadastro de uma nova senha.
+					</p>
+					<br />
+
+					<p style="font-size: 18px">
+						Para acessar,
+						<a th:href="${url}" style="color: inherit; color: blue; cursor: pointer">clique aqui</a>.
+					</p>
+				</td>
+			</tr>
+		</tbody>
+
+		<tfoot>
+			<tr>
+				<td align="center" width="100%;" style="padding: 20px">
+					<p style="font-size: 18px; color: white">
+						Este e-mail foi enviado de forma automática. Caso você não seja o
+						destinatário, por favor desconsidere.
+					</p>
+
+
+				</td>
+			</tr>
+		</tfoot>
+	</table>
+
+	</html>
