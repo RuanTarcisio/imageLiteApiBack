@@ -4,7 +4,6 @@ import br.com.imageliteapi.domain.User;
 import br.com.imageliteapi.domain.UserConnectedAccount;
 import br.com.imageliteapi.repository.ConnectedAccountRepository;
 import br.com.imageliteapi.repository.UserRepository;
-import br.com.imageliteapi.service.UserService;
 import br.com.imageliteapi.utils.ApplicationProperties;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;

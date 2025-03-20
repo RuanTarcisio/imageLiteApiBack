@@ -1,56 +1,50 @@
 package br.com.imageliteapi.resource;
 
-import java.net.URI;
-import java.util.Map;
-
+import br.com.imageliteapi.domain.dto.UserDTO;
+import br.com.imageliteapi.domain.dto.inputs.InputUserUpdate;
+import br.com.imageliteapi.mapper.UserMapper;
+import br.com.imageliteapi.service.UserService;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
-
-import br.com.imageliteapi.domain.User;
-import br.com.imageliteapi.domain.dto.CredentialsDTO;
-import br.com.imageliteapi.domain.dto.UserDTO;
-import br.com.imageliteapi.mapper.UserMapper;
-import br.com.imageliteapi.security.AccessToken;
-import br.com.imageliteapi.service.UserService;
-import br.com.imageliteapi.service.validation.exception.DuplicatedTupleException;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/v1/users")
 public class UserController {
 
-	@Autowired
-	private UserService userService;
-	@Autowired
-	private UserMapper userMapper;
+    @Autowired
+    private UserService userService;
+    @Autowired
+    private UserMapper userMapper;
 
-	@PostMapping
-	public ResponseEntity<?> save(@RequestBody UserDTO dto) {
-		try {
-			User user = userMapper.mapToUser(dto);
-			userService.save(user);
-			URI uri = ServletUriComponentsBuilder.fromCurrentRequest().path("/{id}").buildAndExpand(user.getId())
-					.toUri();
-			return ResponseEntity.created(uri).build();
-		} catch (DuplicatedTupleException e) {
-			Map<String, String> jsonResultado = Map.of("error", e.getMessage());
-			return ResponseEntity.status(HttpStatus.CONFLICT).body(jsonResultado);
-		}
-	}
-	
-	  @PostMapping("/auth")
-	    public ResponseEntity autheticate(@RequestBody CredentialsDTO credentials){
-	        var token = userService.authenticate(credentials.email(), credentials.password());
+    @GetMapping("/profile/{id}")
+    public ResponseEntity<UserDTO> getProfile(@PathVariable Long id) {
+        return ResponseEntity.ok().body(userService.getUser(id));
+    }
 
-	        if(token == null){
-	            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
-	        }
+    @PutMapping("/profile/{id}")
+    public ResponseEntity<UserDTO> updateProfile(@PathVariable Long id, @Valid @RequestBody  InputUserUpdate inputUserUpdate) {
+        return ResponseEntity.ok().body(userService.updateUser(id, inputUserUpdate));
+    }
 
-	        return ResponseEntity.ok(token);
-	    }
-	}
+    @GetMapping(value = "/profile/{id}/photo")
+    public ResponseEntity<byte[]> find(@PathVariable Long id) {
+        var possibleImage = userService.getImageByUserId(id);
+        if (possibleImage.isEmpty()) {
+            return ResponseEntity.notFound().build();
+        }
+
+        var image = possibleImage.get();
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(image.getExtension().getMediaType());
+        headers.setContentLength(image.getSize());
+        headers.setContentDispositionFormData("inline; filename = \"" + image.getFileName() + "\"",
+                image.getFileName());
+
+        return new ResponseEntity<>(image.getFile(), headers, HttpStatus.OK);
+    }
+
+}

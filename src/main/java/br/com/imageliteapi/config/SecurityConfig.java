@@ -2,8 +2,11 @@ package br.com.imageliteapi.config;
 
 import br.com.imageliteapi.security.JwtFilter;
 import br.com.imageliteapi.security.Oauth2LoginSuccessHandler;
+import com.fasterxml.jackson.datatype.jsr310.deser.LocalDateDeserializer;
+import com.fasterxml.jackson.datatype.jsr310.ser.LocalDateSerializer;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.boot.autoconfigure.jackson.Jackson2ObjectMapperBuilderCustomizer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -17,6 +20,8 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+
+import java.time.format.DateTimeFormatter;
 
 
 @Configuration
@@ -43,6 +48,7 @@ public class SecurityConfig {
                 .cors(cors -> cors.configure(http))
                 .authorizeHttpRequests(auth -> {
                     auth.requestMatchers("/v1/users/**").permitAll();
+                    auth.requestMatchers("/v1/auth/**").permitAll();
                     auth.requestMatchers(HttpMethod.GET, "/v1/images/**").authenticated();
                     auth.anyRequest().authenticated();
                 });
@@ -66,5 +72,12 @@ public class SecurityConfig {
         cors.registerCorsConfiguration("/**", config);
 
         return cors;
+    }
+
+    @Bean
+    public Jackson2ObjectMapperBuilderCustomizer jsonCustomizer() {
+        return builder -> builder.simpleDateFormat("dd/MM/yyyy")
+                .serializers(new LocalDateSerializer(DateTimeFormatter.ofPattern("dd/MM/yyyy")))
+                .deserializers(new LocalDateDeserializer(DateTimeFormatter.ofPattern("dd/MM/yyyy")));
     }
 }
