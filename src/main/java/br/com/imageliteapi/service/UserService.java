@@ -1,10 +1,11 @@
 package br.com.imageliteapi.service;
 
+import br.com.imageliteapi.domain.Image;
 import br.com.imageliteapi.domain.ImageUser;
 import br.com.imageliteapi.domain.User;
-import br.com.imageliteapi.domain.dto.UserDTO;
-import br.com.imageliteapi.domain.dto.inputs.InputUserRegister;
-import br.com.imageliteapi.domain.dto.inputs.InputUserUpdate;
+import br.com.imageliteapi.dtos.UserDTO;
+import br.com.imageliteapi.dtos.inputs.InputUserRegister;
+import br.com.imageliteapi.dtos.inputs.InputUserUpdate;
 import br.com.imageliteapi.emailTemplates.MailToUsuario;
 import br.com.imageliteapi.mapper.UserMapper;
 import br.com.imageliteapi.repository.ConnectedAccountRepository;
@@ -15,6 +16,7 @@ import br.com.imageliteapi.security.JwtService;
 import br.com.imageliteapi.service.validation.exception.DuplicatedTupleException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -38,10 +40,11 @@ public class UserService {
     private final UserMapper userMapper;
     private final ImageUserRepository imageUserRepository;
     private final EmailSenderService emailSenderService;
-    private MailToUsuario mailTo;
+    private final MailToUsuario mailTo;
+    @Value("${app.base-url}")
+    private String baseUrl;
 
     public User getByEmail(String email) {
-
         Optional<User> user = repository.findByEmail(email);
 
         if (user.isEmpty()) {
@@ -89,12 +92,13 @@ public class UserService {
             imageUser.setUser(user); // Relaciona imagem ao usuário
             user.setImageUser(imageUser);
         }
-
-//        String template = mailTo.emailParaAtivarUsuarioDto(usuario);
-//        emailSenderService.enviarEmail(template, ATIVACAO_DE_CONTA, usuario.getEmail());
-        return repository.save(user);
+        String template = mailTo.ativarUsuario(user);
+        emailSenderService.enviarEmail(template, "ATIVACAO_DE_CONTA", user.getEmail());
+        user = repository.save(user);
+        String imageUrl = baseUrl + "/v1/users/profile/photo/" + user.getImageUser().getId();
+        user.setProfileImageUrl(imageUrl);
+        return user;
     }
-
 
     public UserDTO getUser(Long id) {
         User user = getById(id);

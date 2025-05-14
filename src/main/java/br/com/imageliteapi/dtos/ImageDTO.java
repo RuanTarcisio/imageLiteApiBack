@@ -1,4 +1,4 @@
-package br.com.imageliteapi.domain.dto;
+package br.com.imageliteapi.dtos;
 
 import java.io.File;
 import java.time.LocalDate;

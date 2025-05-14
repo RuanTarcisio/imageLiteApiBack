@@ -1,7 +1,6 @@
-package br.com.imageliteapi.domain.dto;
+package br.com.imageliteapi.dtos;
 
 
-import br.com.imageliteapi.domain.ImageUser;
 import com.fasterxml.jackson.annotation.JsonFormat;
 
 

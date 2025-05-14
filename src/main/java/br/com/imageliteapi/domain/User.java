@@ -51,16 +51,17 @@ public class User implements UserDetails {
     private LocalDateTime createdAt;
 
     @OneToMany(mappedBy = "user", fetch = FetchType.EAGER)
-
     private List<UserConnectedAccount> connectedAccounts = new ArrayList<>();
 
     @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     private ImageUser imageUser;
 
+    private String profileImageUrl;
+
     @JsonIgnore
     private String codToken;
 
-    private Boolean isFullyRegistred = false;
+    private Boolean fullyRegistred = false;
 
     public User(String name, String cpf, String email, String password,  LocalDate birthdate) {
         this.birthdate = birthdate;

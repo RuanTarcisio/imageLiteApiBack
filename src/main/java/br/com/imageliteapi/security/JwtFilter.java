@@ -2,11 +2,15 @@ package br.com.imageliteapi.security;
 
 import java.io.IOException;
 
+import br.com.imageliteapi.repository.UserRepository;
 import br.com.imageliteapi.service.UserService;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import br.com.imageliteapi.domain.User;
@@ -18,12 +22,12 @@ import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
+@Component
+@RequiredArgsConstructor
 public class JwtFilter extends OncePerRequestFilter {
 
-	@Autowired
-    private  JwtService jwtService;
-    @Autowired
-    private UserService userService;
+    private final JwtService jwtService;
+    private final UserRepository userRepository; // Trocar UserService por UserRepository
 
     @Override
     protected void doFilterInternal(HttpServletRequest request,
@@ -35,17 +39,32 @@ public class JwtFilter extends OncePerRequestFilter {
         if(token != null){
             try {
                 Long id = jwtService.getIdFromToken(token);
-                User user = userService.getById(id);
+                User user = userRepository.findById(id)
+                        .orElseThrow(() -> new InvalidTokenException("Usuário não encontrado"));
                 setUserAsAuthenticated(user);
-            }catch (InvalidTokenException e){
+            } catch (InvalidTokenException e) {
                 log.error("Token inválido: {} ", e.getMessage());
-            }catch (Exception e){
+                sendErrorResponse(response, "Token inválido", HttpStatus.UNAUTHORIZED);
+                return;
+            } catch (Exception e) {
                 log.error("Erro na validação do token: {} ", e.getMessage());
+                sendErrorResponse(response, "Erro de autenticação", HttpStatus.INTERNAL_SERVER_ERROR);
+                return;
             }
         }
 
         filterChain.doFilter(request, response);
     }
+
+    private void sendErrorResponse(HttpServletResponse response, String message, HttpStatus status) throws IOException {
+        response.setStatus(status.value());
+        response.setContentType("application/json");
+        response.getWriter().write(
+                String.format("{\"error\": \"%s\", \"message\": \"%s\"}",
+                        status.getReasonPhrase(), message)
+        );
+    }
+
 
     private void setUserAsAuthenticated(User user){
         UserDetails userDetails = org.springframework.security.core.userdetails.User

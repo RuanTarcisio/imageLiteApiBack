@@ -1,7 +1,6 @@
-package br.com.imageliteapi.domain.dto;
+package br.com.imageliteapi.dtos;
 
 import lombok.Builder;
-import org.springframework.web.multipart.MultipartFile;
 
 @Builder
 public class ImageUserDTO {

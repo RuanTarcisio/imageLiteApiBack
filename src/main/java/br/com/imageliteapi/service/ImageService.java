@@ -3,9 +3,9 @@ package br.com.imageliteapi.service;
 import br.com.imageliteapi.domain.Image;
 import br.com.imageliteapi.domain.enums.ImageExtension;
 import br.com.imageliteapi.repository.ImageRepository;
-import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
@@ -21,8 +21,9 @@ public class ImageService {
         return repository.save(image);
     }
 
+    @Transactional
     public Optional<Image> getById(String id) {
-        //
+
         return repository.findById(id);
     }
 

@@ -10,4 +10,5 @@ public interface ImageUserRepository extends JpaRepository<ImageUser, String> {
 
     Optional<ImageUser> findByUserId(Long userId);
 
+    boolean existsImageUserByUserId(Long id);
 }

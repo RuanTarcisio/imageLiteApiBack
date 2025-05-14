@@ -1,8 +1,10 @@
 spring:
-  datasource: 
+  datasource:
     url: jdbc:postgresql://localhost:5432/imageliteapi
     username: postgres
-    password: senh@BD  
+    password: senh@BD
+    driver-class-name: org.postgresql.Driver
+
   jpa: 
     database: POSTGRESQL
     hibernate:

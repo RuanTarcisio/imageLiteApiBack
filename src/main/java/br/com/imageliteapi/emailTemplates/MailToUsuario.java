@@ -20,7 +20,7 @@ public class MailToUsuario {
 	public String ativarUsuario(User usuario) {
 		
 		Context context = new Context();
-		context.setVariable("url", clienteUrl + "new-password?q=" + usuario.getCodToken());
+		context.setVariable("url", clienteUrl + "/new-password?q=" + usuario.getCodToken());
 		context.setVariable("nome", usuario.getName().split(" ")[0]);
 		return templateEngine.process("ativar-usuario", context);
 	}
@@ -28,7 +28,7 @@ public class MailToUsuario {
 	public String recuperarSenha(User usuario) {
 
 		Context context = new Context();
-		context.setVariable("url", clienteUrl + "recover-password?q=" + usuario.getCodToken());
+		context.setVariable("url", clienteUrl + "/recover-password?q=" + usuario.getCodToken());
 		context.setVariable("nome", usuario.getName().split(" ")[0]);
 		return templateEngine.process("recuperar-senha", context);
 	}

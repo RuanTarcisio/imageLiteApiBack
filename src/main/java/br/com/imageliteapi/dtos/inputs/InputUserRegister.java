@@ -1,4 +1,4 @@
-package br.com.imageliteapi.domain.dto.inputs;
+package br.com.imageliteapi.dtos.inputs;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import jakarta.validation.constraints.NotBlank;

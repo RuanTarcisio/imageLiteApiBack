@@ -1,8 +1,7 @@
-package br.com.imageliteapi.domain.dto.inputs;
+package br.com.imageliteapi.dtos.inputs;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import jakarta.validation.constraints.NotBlank;
-import org.hibernate.validator.constraints.br.CPF;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDate;

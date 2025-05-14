@@ -1,5 +1,6 @@
 package br.com.imageliteapi.config;
 
+import br.com.imageliteapi.security.JwtAuthenticationEntryPoint;
 import br.com.imageliteapi.security.JwtFilter;
 import br.com.imageliteapi.security.Oauth2LoginSuccessHandler;
 import com.fasterxml.jackson.datatype.jsr310.deser.LocalDateDeserializer;
@@ -10,11 +11,16 @@ import org.springframework.boot.autoconfigure.jackson.Jackson2ObjectMapperBuilde
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
+import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.cors.CorsConfiguration;
@@ -22,6 +28,7 @@ import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import java.time.format.DateTimeFormatter;
+import java.util.List;
 
 
 @Configuration
@@ -30,11 +37,9 @@ import java.time.format.DateTimeFormatter;
 @Slf4j
 public class SecurityConfig {
 
+    private final JwtFilter jwtFilter;
     private final Oauth2LoginSuccessHandler oauth2LoginSuccessHandler;
-    @Bean
-    public JwtFilter jwtFilter() {
-        return new JwtFilter();
-    }
+    private final JwtAuthenticationEntryPoint authenticationEntryPoint;
 
     @Bean
     public PasswordEncoder passwordEncoder() {
@@ -42,37 +47,56 @@ public class SecurityConfig {
     }
 
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http, JwtFilter jwtFilter) throws Exception {
+    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
                 .csrf(AbstractHttpConfigurer::disable)
-                .cors(cors -> cors.configure(http))
+                .cors(Customizer.withDefaults())
+                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> {
-                    auth.requestMatchers("/v1/users/**").permitAll();
-                    auth.requestMatchers("/v1/auth/**").permitAll();
-                    auth.requestMatchers(HttpMethod.GET, "/v1/images/**").authenticated();
+                    auth.requestMatchers(
+                            "/v1/users/**",
+                            "/v1/auth/**",
+                            "/error",
+                            "/favicon.ico"
+                    ).permitAll();
+
+                    auth.requestMatchers(HttpMethod.GET, "/v1/images/**").permitAll(); // Ou authenticated() se precisar de autenticação
+                    auth.requestMatchers(HttpMethod.POST, "/v1/images").authenticated();
                     auth.anyRequest().authenticated();
-                });
-        http.oauth2Login(customizer -> {
-            customizer.successHandler(oauth2LoginSuccessHandler);
-            customizer.failureHandler((request, response, exception) -> {
-                log.error("OAuth2 Authentication failed", exception);
-                response.sendRedirect("/login?error=true");
-            });
-        });
-        http.addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
+                })
+                .oauth2Login(oauth2 -> oauth2
+                        .successHandler(oauth2LoginSuccessHandler)
+                        .failureHandler((request, response, exception) -> {
+                            log.error("OAuth2 Authentication failed", exception);
+                            response.setStatus(HttpStatus.UNAUTHORIZED.value());
+                            response.setContentType(MediaType.APPLICATION_JSON_VALUE);
+                            response.getWriter().write(
+                                    String.format("{\"error\": \"OAuth2 Authentication failed\", \"message\": \"%s\"}",
+                                            exception.getMessage())
+                            );
+                        })
+                )
+                .exceptionHandling(exception ->
+                        exception.authenticationEntryPoint(authenticationEntryPoint)
+                )
+                .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }
 
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
-        CorsConfiguration config = new CorsConfiguration().applyPermitDefaultValues();
+        CorsConfiguration config = new CorsConfiguration();
+        config.setAllowedOrigins(List.of("http://localhost:3000")); // substitua pelo seu domínio em produção
+        config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+        config.setAllowedHeaders(List.of("Authorization", "Content-Type"));
+        config.setAllowCredentials(true); // necessário quando se envia Authorization
 
-        UrlBasedCorsConfigurationSource cors = new UrlBasedCorsConfigurationSource();
-        cors.registerCorsConfiguration("/**", config);
-
-        return cors;
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", config);
+        return source;
     }
+
 
     @Bean
     public Jackson2ObjectMapperBuilderCustomizer jsonCustomizer() {

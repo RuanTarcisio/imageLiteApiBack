@@ -5,6 +5,7 @@ import jakarta.persistence.*;
 import lombok.*;
 import org.springframework.data.annotation.CreatedDate;
 
+import java.sql.Blob;
 import java.time.LocalDateTime;
 
 @MappedSuperclass
@@ -32,7 +33,7 @@ public abstract class AbstractImage {
 
     @Lob
     @Basic(fetch = FetchType.LAZY)
-    private byte[] file;
+    private Blob file; // Alterado para Blob
 
     public abstract String getFileName();
 }
