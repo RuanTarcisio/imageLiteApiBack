@@ -4,6 +4,8 @@ import java.io.IOException;
 
 import br.com.imageliteapi.repository.UserRepository;
 import br.com.imageliteapi.service.UserService;
+import br.com.imageliteapi.utils.AuthHandlerUtil;
+import jakarta.servlet.http.Cookie;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -27,7 +29,8 @@ import lombok.extern.slf4j.Slf4j;
 public class JwtFilter extends OncePerRequestFilter {
 
     private final JwtService jwtService;
-    private final UserRepository userRepository; // Trocar UserService por UserRepository
+    private final UserRepository userRepository;
+    private final AuthHandlerUtil authHandlerUtil;
 
     @Override
     protected void doFilterInternal(HttpServletRequest request,
@@ -36,62 +39,34 @@ public class JwtFilter extends OncePerRequestFilter {
 
         String token = getToken(request);
 
-        if(token != null){
+        if (token != null) {
             try {
                 Long id = jwtService.getIdFromToken(token);
                 User user = userRepository.findById(id)
                         .orElseThrow(() -> new InvalidTokenException("Usuário não encontrado"));
-                setUserAsAuthenticated(user);
-            } catch (InvalidTokenException e) {
-                log.error("Token inválido: {} ", e.getMessage());
-                sendErrorResponse(response, "Token inválido", HttpStatus.UNAUTHORIZED);
-                return;
+                authHandlerUtil.setSpringAuthentication(user);
             } catch (Exception e) {
-                log.error("Erro na validação do token: {} ", e.getMessage());
-                sendErrorResponse(response, "Erro de autenticação", HttpStatus.INTERNAL_SERVER_ERROR);
-                return;
+                log.warn("Token inválido ou expirado: {}", e.getMessage());
+
             }
         }
 
         filterChain.doFilter(request, response);
     }
 
-    private void sendErrorResponse(HttpServletResponse response, String message, HttpStatus status) throws IOException {
-        response.setStatus(status.value());
-        response.setContentType("application/json");
-        response.getWriter().write(
-                String.format("{\"error\": \"%s\", \"message\": \"%s\"}",
-                        status.getReasonPhrase(), message)
-        );
-    }
-
-
-    private void setUserAsAuthenticated(User user){
-        UserDetails userDetails = org.springframework.security.core.userdetails.User
-                .withUsername(user.getEmail())
-                .password(user.getPassword())
-                .roles("USER")
-                .build();
-
-        UsernamePasswordAuthenticationToken authentication =
-                new UsernamePasswordAuthenticationToken(userDetails, "", userDetails.getAuthorities());
-
-        SecurityContextHolder.getContext().setAuthentication(authentication);
-    }
-
-    private String getToken(HttpServletRequest request){
+    private String getToken(HttpServletRequest request) {
         String authHeader = request.getHeader("Authorization");
-        if(authHeader != null){
-            String[] authHeaderParts = authHeader.split(" ");
-            if(authHeaderParts.length == 2){
-                return authHeaderParts[1];
+        if (authHeader != null && authHeader.startsWith("Bearer ")) {
+            return authHeader.substring(7);
+        }
+        if (request.getCookies() != null) {
+            for (Cookie cookie : request.getCookies()) {
+                if ("AUTH_TOKEN".equals(cookie.getName())) {
+                    return cookie.getValue();
+                }
             }
         }
-        return null;
-    }
 
-    @Override
-    protected boolean shouldNotFilter(HttpServletRequest request) throws ServletException {
-        return request.getRequestURI().contains("/v1/users");
+        return null;
     }
 }

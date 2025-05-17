@@ -54,17 +54,21 @@ public class SecurityConfig {
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> {
                     auth.requestMatchers(
-                            "/v1/users/**",
                             "/v1/auth/**",
-                            "/error",
-                            "/favicon.ico"
+                            "/v1/oauth2/authorization/**"
                     ).permitAll();
 
-                    auth.requestMatchers(HttpMethod.GET, "/v1/images/**").permitAll(); // Ou authenticated() se precisar de autenticação
+                    auth.requestMatchers(HttpMethod.GET, "/v1/images/**").permitAll();
                     auth.requestMatchers(HttpMethod.POST, "/v1/images").authenticated();
                     auth.anyRequest().authenticated();
                 })
                 .oauth2Login(oauth2 -> oauth2
+                        .authorizationEndpoint(authorization -> authorization
+                                .baseUri("/v1/oauth2/authorization")
+                        )
+                        .redirectionEndpoint(redirection -> redirection
+                                .baseUri("/login/oauth2/code/*")
+                        )
                         .successHandler(oauth2LoginSuccessHandler)
                         .failureHandler((request, response, exception) -> {
                             log.error("OAuth2 Authentication failed", exception);
@@ -90,7 +94,7 @@ public class SecurityConfig {
         config.setAllowedOrigins(List.of("http://localhost:3000")); // substitua pelo seu domínio em produção
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         config.setAllowedHeaders(List.of("Authorization", "Content-Type"));
-        config.setAllowCredentials(true); // necessário quando se envia Authorization
+        config.setAllowCredentials(true);
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", config);

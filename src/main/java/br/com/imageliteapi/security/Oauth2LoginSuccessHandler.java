@@ -5,6 +5,7 @@ import br.com.imageliteapi.domain.UserConnectedAccount;
 import br.com.imageliteapi.repository.ConnectedAccountRepository;
 import br.com.imageliteapi.repository.UserRepository;
 import br.com.imageliteapi.utils.ApplicationProperties;
+import br.com.imageliteapi.utils.AuthHandlerUtil;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -27,10 +28,7 @@ import java.util.Optional;
 public class Oauth2LoginSuccessHandler implements AuthenticationSuccessHandler {
     private final ConnectedAccountRepository connectedAccountRepository;
     private final UserRepository userRepository;
-    private final ApplicationProperties applicationProperties;
-    private final JwtService jwtService;
-
-    @Transactional
+    private final AuthHandlerUtil authHandlerUtil;
     @Override
     public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response, Authentication authentication) throws IOException, ServletException {
         try {
@@ -44,7 +42,7 @@ public class Oauth2LoginSuccessHandler implements AuthenticationSuccessHandler {
             Optional<UserConnectedAccount> connectedAccount = connectedAccountRepository.findByProviderAndProviderId(provider, providerId);
             if (connectedAccount.isPresent()) {
                 log.info("User already connected - UserId: {}", connectedAccount.get().getUser().getId());
-                authenticateUser(connectedAccount.get().getUser(), response);
+                authHandlerUtil.authenticateUser(connectedAccount.get().getUser(), response);
                 return;
             }
 
@@ -55,35 +53,14 @@ public class Oauth2LoginSuccessHandler implements AuthenticationSuccessHandler {
                 existingUser.addConnectedAccount(newConnectedAccount);
                 existingUser = userRepository.save(existingUser);
                 connectedAccountRepository.save(newConnectedAccount);
-                authenticateUser(existingUser, response);
+                authHandlerUtil.authenticateUser(existingUser, response);
             } else {
                 log.info("Creating new user from OAuth2");
                 User newUser = createUserFromOauth2User(authenticationToken);
-                authenticateUser(newUser, response);
+                authHandlerUtil.authenticateUser(newUser, response);
             }
         } catch (Exception e) {
             log.error("Error during OAuth2 login success handling", e);
-            response.sendRedirect("/login?error=true");
-        }
-    }
-
-    private void authenticateUser(User user, HttpServletResponse response) throws IOException {
-        try {
-            // 🔹 Autentica o usuário no contexto do Spring Security
-            UsernamePasswordAuthenticationToken authenticationToken =
-                    new UsernamePasswordAuthenticationToken(user, null, user.getAuthorities());
-            SecurityContextHolder.getContext().setAuthentication(authenticationToken);
-
-            // 🔥 Gere o token JWT usando JwtService
-            String token = jwtService.generateToken(user).getAccessToken();
-
-            // 🔗 Redireciona o usuário com o token na URL
-            String redirectUrl = applicationProperties.getLoginSuccessUrl() + "?token=" + token;
-            log.info("Redirecting to: {}", redirectUrl);
-            response.sendRedirect(redirectUrl);
-
-        } catch (Exception e) {
-            log.error("Error during user authentication", e);
             response.sendRedirect("/login?error=true");
         }
     }
@@ -102,44 +79,3 @@ public class Oauth2LoginSuccessHandler implements AuthenticationSuccessHandler {
         return user;
     }
 }
-//
-//    private final JwtService jwtService;
-//    private final UserService userService;
-//
-//    public Oauth2LoginSuccessHandler(JwtService jwtService, UserService userService) {
-//        this.jwtService = jwtService;
-//        this.userService = userService;
-//    }
-//
-//    @Override
-//    public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response, Authentication authentication) throws IOException, ServletException {
-//        if (authentication instanceof OAuth2AuthenticationToken) {
-//            OAuth2AuthenticationToken oauthToken = (OAuth2AuthenticationToken) authentication;
-//
-//            // Extrair informações do usuário do token OAuth2
-//            String email = oauthToken.getPrincipal().getAttribute("email");
-//            String name = oauthToken.getPrincipal().getAttribute("name");
-//
-//            // Verificar se o usuário já existe no banco de dados
-//            User user = userService.getByEmail(email);
-//            if (user == null) {
-//                // Criar um novo usuário se não existir
-//                user = new User();
-//                user.setEmail(email);
-//                user.setName(name);
-//                userService.save(user);
-//            }
-//
-//            // Gerar token JWT
-//            String jwtToken = jwtService.generateToken(user).getToken();
-//
-//            // Redirecionar ou retornar o token
-//            response.sendRedirect("/home?token=" + jwtToken); // Redirecionar com o token na URL
-//            // Ou retornar o token como JSON
-//            /*
-//            response.setContentType("application/json");
-//            response.getWriter().write("{\"token\": \"" + jwtToken + "\"}");
-//            */
-//        }
-//    }
-//}

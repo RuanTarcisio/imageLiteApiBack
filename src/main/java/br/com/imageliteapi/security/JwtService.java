@@ -31,10 +31,10 @@ public class JwtService {
         var claims = generateTokenClaims(user);
 
         String token = Jwts.builder()
-                .claims(claims) // Primeiro define as claims
-                .subject(user.getId().toString()) // Depois define o subject
-                .expiration(expirationDate) // Define a expiração
-                .signWith(key, Jwts.SIG.HS256) // Algoritmo explícito para evitar warnings
+                .claims(claims)
+                .subject(user.getId().toString())
+                .expiration(expirationDate)
+                .signWith(key, Jwts.SIG.HS256)
                 .compact();
 
         return new AccessToken(token);
@@ -61,10 +61,7 @@ public class JwtService {
     }
 
     public Long getIdFromToken(String tokenJwt) {
-        /*
-         * return Jwts.parser() .verifyWith(keyGenerator.getKey()) .build()
-         * .parseSignedClaims(tokenJwt) .getPayload() .getSubject();
-         */
+
         try {
             JwtParser build = Jwts.parser().verifyWith(keyGenerator.getKey()).build();
 
@@ -74,13 +71,9 @@ public class JwtService {
         } catch (JwtException e) {
             throw new InvalidTokenException(e.getMessage());
         }
-
     }
     public String getClaim(String tokenJwt, String reference) {
-        /*
-         * return Jwts.parser() .verifyWith(keyGenerator.getKey()) .build()
-         * .parseSignedClaims(tokenJwt) .getPayload() .getSubject();
-         */
+
         try {
             JwtParser build = Jwts.parser().verifyWith(keyGenerator.getKey()).build();
 

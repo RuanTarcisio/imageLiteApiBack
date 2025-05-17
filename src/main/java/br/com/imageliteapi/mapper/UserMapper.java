@@ -6,14 +6,17 @@ import br.com.imageliteapi.dtos.inputs.InputUserRegister;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 
 @Component
 @RequiredArgsConstructor
 public class UserMapper {
 
     public static User inputToUser(InputUserRegister dto) {
-        User user = new User(dto.name(), dto.cpf(), dto.email(), dto.password(), dto.birthday());
+
+        User user = new User(dto.getName(), dto.getCpf(), dto.getEmail(), dto.getPassword(), dto.getBirthdate());
         user.setCreatedAt(LocalDateTime.now());
 
         return user;
@@ -21,8 +24,8 @@ public class UserMapper {
 
     public static UserDTO userToDto(User user) {
 
+
         return new UserDTO(
-                user.getId(),
                 user.getName(),
                 user.getEmail(),
                 user.getCpf(),

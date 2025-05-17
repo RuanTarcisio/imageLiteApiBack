@@ -34,13 +34,12 @@ import static br.com.imageliteapi.mapper.UserMapper.userToDto;
 public class UserService {
 
     private final UserRepository repository;
-    private final PasswordEncoder passwordEncoder;
-    private final JwtService jwtService;
     private final ConnectedAccountRepository connectedAccountRepository;
     private final UserMapper userMapper;
     private final ImageUserRepository imageUserRepository;
     private final EmailSenderService emailSenderService;
     private final MailToUsuario mailTo;
+    private final PasswordEncoder passwordEncoder;
     @Value("${app.base-url}")
     private String baseUrl;
 
@@ -78,26 +77,27 @@ public class UserService {
     @Transactional
     public User save(InputUserRegister input) {
 
-        var possibleUserByEmail = repository.existsByEmail(input.email());
-        var possibleUserByCpf = repository.existsByCpf(input.cpf());
+        var possibleUserByEmail = repository.existsByEmail(input.getEmail());
+        var possibleUserByCpf = repository.existsByCpf(input.getCpf());
 
         if (possibleUserByEmail || possibleUserByCpf) {
             throw new DuplicatedTupleException("User already registered!");
         }
         User user = inputToUser(input);
         encodePassword(user);
-
-        if (input.file() != null && !input.file().isEmpty()) {
-            ImageUser imageUser = mapToImage(input.file());
-            imageUser.setUser(user); // Relaciona imagem ao usuário
-            user.setImageUser(imageUser);
-        }
         String template = mailTo.ativarUsuario(user);
         emailSenderService.enviarEmail(template, "ATIVACAO_DE_CONTA", user.getEmail());
         user = repository.save(user);
-        String imageUrl = baseUrl + "/v1/users/profile/photo/" + user.getImageUser().getId();
-        user.setProfileImageUrl(imageUrl);
+
+        if (input.getProfileImage() != null && !input.getProfileImage().isEmpty()) {
+            ImageUser imageUser = mapToImage(input.getProfileImage());
+            imageUser.setUser(user); // Relaciona imagem ao usuário
+            user.setImageUser(imageUser);String imageUrl = baseUrl + "/v1/users/profile/photo/" + user.getImageUser().getId();
+            user.setProfileImageUrl(imageUrl);
+            return user;
+        }
         return user;
+
     }
 
     public UserDTO getUser(Long id) {
@@ -134,16 +134,4 @@ public class UserService {
         return imageUserRepository.findByUserId(id);
     }
 
-    public AccessToken authenticate(String email, String password) {
-
-        var user = getByEmail(email);
-        if (user == null) {
-            return null;
-        }
-        if (passwordEncoder.matches(password, user.getPassword())) {
-            return jwtService.generateToken(user);
-        }
-
-        return null;
-    }
 }

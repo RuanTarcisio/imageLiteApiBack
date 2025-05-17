@@ -33,7 +33,7 @@ public abstract class AbstractImage {
 
     @Lob
     @Basic(fetch = FetchType.LAZY)
-    private Blob file; // Alterado para Blob
+    private Blob file;
 
     public abstract String getFileName();
 }
