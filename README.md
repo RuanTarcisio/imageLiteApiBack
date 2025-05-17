@@ -1,125 +1,90 @@
 <!DOCTYPE html>
-<html lang="pt-br">
+<html lang="pt-BR">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>README - Projeto ImageLite App</title>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      background-color: #f4f4f4;
-      color: #333;
-      line-height: 1.6;
-      margin: 0;
-      padding: 20px;
-    }
-    h1, h2 {
-      color: #4CAF50;
-    }
-    h3 {
-      color: #333;
-    }
-    pre {
-      background-color: #282c34;
-      color: #fff;
-      padding: 10px;
-      border-radius: 5px;
-      font-size: 14px;
-    }
-    code {
-      font-family: Consolas, monospace;
-      font-size: 1.1em;
-    }
-    ul {
-      margin-bottom: 20px;
-    }
-    li {
-      margin-bottom: 8px;
-    }
-    .content {
-      max-width: 800px;
-      margin: 0 auto;
-      background-color: #fff;
-      padding: 20px;
-      border-radius: 8px;
-      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-    }
-  </style>
 </head>
 <body>
+  <h1>📡 Imagelite API (Back-end)</h1>
+  <p>API REST desenvolvida com <strong>Spring Boot</strong> para autenticação, gerenciamento de usuários e outras funcionalidades do sistema Imagelite.</p>
 
-  <div class="content">
-    <h1>Projeto ImageLite App</h1>
-    <p>Este é o README do projeto ImageLite App, uma aplicação para gerenciamento de imagens com funcionalidades de busca por tags e formatos.</p>
+  <h2>🚀 Tecnologias utilizadas</h2>
+  <ul>
+    <li>Java 17+</li>
+    <li>Spring Boot</li>
+    <li>Spring Security</li>
+    <li>JWT (com cookie HttpOnly)</li>
+    <li>Lombok</li>
+    <li>JPA / Hibernate</li>
+    <li>PostgreSQL</li>
+    <li>Flyway</li>
+    <li>OAuth2</li>
+    <li>PostgreSQL</li>
+    <li>Spring Mail</li>
+    <li>PostgreSQL</li>
+    <li>Docker (opcional)</li>
+  </ul>
 
-    <h2>Estrutura do Projeto</h2>
-    <p>O projeto é dividido em duas partes principais:</p>
-    <ul>
-      <li><strong>Back-end:</strong> Desenvolvido com Java, Spring Boot e API REST.</li>
-      <li><strong>Front-end:</strong> Desenvolvido com Next.js, React e Tailwind CSS.</li>
-    </ul>
+  <h2>📂 Estrutura principal</h2>
+  <ul>
+    <li><code>/condif</code> – classes de configuração</li>
+    <li><code>/domain</code> – entidades de domínio</li>
+    <li><code>/dtos</code> – classes dtos</li>
+    <li><code>/repository</code> – interfaces do JPA</li>
+    <li><code>/service</code> – regras de negócio</li>
+    <li><code>/resources</code> – endpoints REST</li>
+    <li><code>/security</code> – autenticação e filtros</li>
+    <li><code>/utils</code> – utilitários diversos</li>
+  </ul>
 
-    <h2>Back-End</h2>
-    <h3>Requisitos</h3>
-    <ul>
-      <li>Java 17 ou superior</li>
-      <li>Spring Boot 2.x</li>
-      <li>Banco de Dados Relacional (ex: MySQL, PostgreSQL)</li>
-      <li>JDK 17 ou superior</li>
-      <li>IDE de sua escolha (ex: IntelliJ IDEA, Eclipse)</li>
-    </ul>
+  <h2>🔐 Autenticação</h2>
+  <p>Autenticação baseada em JWT:</p>
+  <ul>
+    <li>Login via <code>/signin</code></li>
+    <li>Login via <code>Social login (google/ github) </code></li>
+    <li>JWT gerado e enviado em cookie HttpOnly (<code>AUTH_TOKEN</code>)</li>
+    <li>Filtro <code>JwtFilter</code> intercepta e valida o token</li>
+  </ul>
 
-    <h3>Como Rodar</h3>
-    <pre><code>git clone https://github.com/seu-usuario/imagelite-backend.git
-cd imagelite-backend
-./mvnw spring-boot:run</code></pre>
+  <h2>▶️ Como rodar o projeto</h2>
+  <h3>Pré-requisitos</h3>
+  <ul>
+    <li>Java 17+</li>
+    <li>Maven</li>
+    <li>PostgreSQL</li>
+  </ul>
 
-    <h3>Endpoints principais</h3>
-    <ul>
-      <li><code>GET /api/images</code> - Recupera a lista de imagens cadastradas.</li>
-      <li><code>POST /api/images</code> - Envia uma nova imagem.</li>
-      <li><code>GET /api/images/{id}</code> - Recupera os detalhes de uma imagem específica.</li>
-    </ul>
+  <h3>Executando localmente</h3>
+  <pre><code>
+cd backend
+./mvnw spring-boot:run
+  </code></pre>
 
-    <h2>Front-End</h2>
-    <h3>Requisitos</h3>
-    <ul>
-      <li>Node.js v16.x ou superior</li>
-      <li>npm ou yarn para gerenciamento de pacotes</li>
-    </ul>
+  <h2>📫 Endpoints principais</h2>
+  <table border="1">
+    <thead>
+      <tr>
+        <th>Método</th>
+        <th>Rota</th>
+        <th>Descrição</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr><td>POST</td><td>/signin</td><td>Autentica usuário e gera JWT</td></tr>
+      <tr><td>GET</td><td>/me</td><td>Retorna dados do usuário autenticado</td></tr>
+      <tr><td>POST</td><td>/users</td><td>Cria novo usuário</td></tr>
+    </tbody>
+  </table>
 
-    <h3>Como Rodar</h3>
-    <pre><code>git clone https://github.com/seu-usuario/imagelite-frontend.git
-cd imagelite-frontend
-npm install
-npm run dev</code></pre>
+  <h2>📁 Configuração</h2>
+  <p>Exemplo de <code>application.properties</code>:</p>
+  <pre><code>
+spring.datasource.url=jdbc:postgresql://localhost:5432/imagelite
+spring.datasource.username=usuario
+spring.datasource.password=senha
+jwt.secret=umaChaveSecreta
 
-    <h3>Estrutura de Arquivos</h3>
-    <ul>
-      <li><code>pages/</code> - Contém as páginas principais da aplicação.</li>
-      <li><code>components/</code> - Contém os componentes reutilizáveis (ex: Header, Footer).</li>
-      <li><code>public/</code> - Imagens, ícones e outros arquivos estáticos.</li>
-    </ul>
-
-    <h2>Como Contribuir</h2>
-    <ul>
-      <li>Faça um fork do repositório.</li>
-      <li>Crie uma branch para suas alterações: <code>git checkout -b minha-feature</code></li>
-      <li>Commit suas alterações: <code>git commit -am 'Adicionando nova feature'</code></li>
-      <li>Push para a branch: <code>git push origin minha-feature</code></li>
-      <li>Abra um pull request para a branch principal.</li>
-    </ul>
-
-    <h2>Licença</h2>
-    <p>Este projeto está licenciado sob a licença MIT - veja o arquivo <code>LICENSE</code> para mais detalhes.</p>
-
-    <h2>Contato</h2>
-    <p>Para mais informações, entre em contato com o desenvolvedor principal:</p>
-    <ul>
-      <li>Email: <a href="mailto:seu-email@dominio.com">seu-email@dominio.com</a></li>
-      <li>GitHub: <a href="https://github.com/seu-usuario" target="_blank">https://github.com/seu-usuario</a></li>
-    </ul>
-  </div>
-
+security.oauth2.client.registration.google.client-id= SEU GOOGLE CLIENT
+security.oauth2.client.registration.google.client-secret.= SEU GOOGLE ID
+  </code></pre>
 </body>
 </html>
