@@ -14,6 +14,7 @@
     <li>Spring Security</li>
     <li>JWT (com cookie HttpOnly)</li>
     <li>Lombok</li>
+     <li>Swagger</li>
     <li>JPA / Hibernate</li>
     <li>PostgreSQL</li>
     <li>Flyway</li>
