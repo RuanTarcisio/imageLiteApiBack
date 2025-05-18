@@ -47,11 +47,9 @@ public class UserController {
         headers.setContentDispositionFormData("inline; filename=\"" + image.getFileName() + "\"", image.getFileName());
 
         try {
-            // Converte o Blob para byte[]
             byte[] fileBytes = readBlobToBytes(image.getFile());
             return new ResponseEntity<>(fileBytes, headers, HttpStatus.OK);
         } catch (SQLException e) {
-            // Trata erros de leitura do Blob
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }

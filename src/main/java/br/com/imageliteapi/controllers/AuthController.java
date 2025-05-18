@@ -54,18 +54,20 @@ public class AuthController {
     }
 
 @GetMapping("/check-session")
-public ResponseEntity<?> checkSession(@AuthenticationPrincipal User user) {
+public ResponseEntity<?> checkSession(@AuthenticationPrincipal User user, HttpServletResponse response) {
     if (user == null) {
+        var expiredCookie = authHandlerUtil.expiredSession();
+        response.addHeader("Set-Cookie", expiredCookie);
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
     }
 
-    Map<String, Object> response = new HashMap<>();
-    response.put("id", user.getId());
-    response.put("email", user.getEmail());
-    response.put("name", user.getName());
-    response.put("profileImage", user.getProfileImageUrl());
+    Map<String, Object> object = new HashMap<>();
+    object.put("id", user.getId());
+    object.put("email", user.getEmail());
+    object.put("name", user.getName());
+    object.put("profileImage", user.getProfileImageUrl());
 
-    return ResponseEntity.ok(response);
+    return ResponseEntity.ok(object);
 }
 
 //    @GetMapping("/check-session")
