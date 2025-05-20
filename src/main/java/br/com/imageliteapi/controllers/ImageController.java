@@ -8,6 +8,11 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 import br.com.imageliteapi.service.ImageService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -33,37 +38,53 @@ import static br.com.imageliteapi.mapper.ImageMapper.*;
 @RequestMapping("v1/images")
 @Slf4j
 @RequiredArgsConstructor
+@Tag(name = "Imagens", description = "Endpoints para upload, busca e recuperação de imagens")
 public class ImageController {
 
 	private final ImageService service;
 
+	@Operation(summary = "Upload de imagem", description = "Realiza o upload de uma imagem com nome e tags associadas")
+	@ApiResponses(value = {
+			@ApiResponse(responseCode = "201", description = "Imagem salva com sucesso"),
+			@ApiResponse(responseCode = "400", description = "Erro ao processar a imagem")
+	})
 	@PostMapping
-	public ResponseEntity<?> save(@RequestParam("file") MultipartFile file,
-								  @RequestParam("name") String name,
-								  @RequestParam("tags") List<String> tags) throws IOException {
+	public ResponseEntity<?> save(
+			@Parameter(description = "Arquivo da imagem", required = true)
+			@RequestParam("file") MultipartFile file,
+
+			@Parameter(description = "Nome da imagem", required = true)
+			@RequestParam("name") String name,
+
+			@Parameter(description = "Lista de tags para a imagem", required = true)
+			@RequestParam("tags") List<String> tags) throws IOException {
 
 		log.info("Imagem recebida: name: {}, size: {}", file.getOriginalFilename(), file.getSize());
 
 		Image image = mapToImage(file, name, tags);
-		service.save(image);  // Salva a imagem
+		service.save(image);
 
-		// Gera o URI para o recurso da imagem criada
 		URI uri = ServletUriComponentsBuilder.fromCurrentRequest()
 				.path("/{id}")
 				.buildAndExpand(image.getId())
 				.toUri();
-		System.out.println("Imagem URI: " + uri.toString());  // Verifique no console se a URI está correta
 
-		return ResponseEntity.created(uri).body(uri.toString());  // Retorna a URI no corpo da resposta
+		return ResponseEntity.created(uri).body(uri.toString());
 	}
 
-
+	@Operation(summary = "Buscar imagens", description = "Busca imagens por extensão e/ou texto")
+	@ApiResponses(value = {
+			@ApiResponse(responseCode = "200", description = "Busca realizada com sucesso")
+	})
 	@GetMapping
 	public ResponseEntity<List<ImageDTO>> search(
+			@Parameter(description = "Extensão da imagem (ex: PNG, JPG)", required = false)
 			@RequestParam(value = "extension", required = false, defaultValue = "") String extension,
+
+			@Parameter(description = "Termo de busca (nome ou tag)", required = false)
 			@RequestParam(value = "query", required = false) String query) throws InterruptedException {
 
-		Thread.sleep(3000L);
+		Thread.sleep(3000L); // Simula latência para testes
 
 		var result = service.search(ImageExtension.ofName(extension), query);
 
@@ -75,9 +96,17 @@ public class ImageController {
 		return ResponseEntity.ok(images);
 	}
 
+	@Operation(summary = "Recuperar imagem por ID", description = "Retorna o conteúdo binário da imagem")
+	@ApiResponses(value = {
+			@ApiResponse(responseCode = "200", description = "Imagem encontrada"),
+			@ApiResponse(responseCode = "404", description = "Imagem não encontrada"),
+			@ApiResponse(responseCode = "400", description = "Erro ao processar o arquivo")
+	})
 	@GetMapping(value = "/{id}")
 	@Transactional
-	public ResponseEntity<byte[]> find(@PathVariable String id) {
+	public ResponseEntity<byte[]> find(
+			@Parameter(description = "ID da imagem") @PathVariable String id) {
+
 		Optional<Image> possibleImage = service.getById(id);
 		if (possibleImage.isEmpty()) {
 			return ResponseEntity.notFound().build();
@@ -100,6 +129,5 @@ public class ImageController {
 	private URI buildImageURL(Image image) {
 		String imagePath = "/" + image.getId();
 		return ServletUriComponentsBuilder.fromCurrentRequest().path(imagePath).build().toUri();
-
 	}
 }

@@ -12,7 +12,7 @@
 	<groupId>br.com.imageliteapi</groupId>
 	<artifactId>imageliteapi</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
-	<packaging>war</packaging>
+	<packaging>jar</packaging>
 	<name>imageliteapi</name>
 	<description>imageliteapi</description>
 	<properties>
@@ -98,6 +98,10 @@
 		<dependency>
 			<groupId>org.thymeleaf.extras</groupId>
 			<artifactId>thymeleaf-extras-springsecurity6</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.flywaydb</groupId>
+			<artifactId>flyway-core</artifactId>
 		</dependency>
 
 	</dependencies>

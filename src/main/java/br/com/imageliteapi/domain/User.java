@@ -59,9 +59,12 @@ public class User implements UserDetails {
     private String profileImageUrl;
 
     @JsonIgnore
+    @Column(unique = true)
     private String codToken;
 
-    private Boolean fullyRegistred = false;
+    private boolean enabled = false;
+
+    private boolean fullyRegistered = false;
 
     public User(String name, String cpf, String email, String password,  LocalDate birthdate) {
         this.birthdate = birthdate;
@@ -69,25 +72,14 @@ public class User implements UserDetails {
         this.email = email;
         this.password = password;
         this.name = name;
-        this.createdAt = createdAt;
     }
 
     public User(OAuth2User oAuth2User) {
         User user = new User();
         user.email = oAuth2User.getAttribute("email");
         user.name = oAuth2User.getAttribute("name");
-
-//		if (name != null) {
-//			List<String> names = List.of(name.split(" "));
-//			if (names.size() > 1) {
-//				user.firstName = names.get(0);
-//				user.lastName = names.get(1);
-//			} else {
-//				user.firstName = names.get(0);
-//			}
-//		}
-//		user.verified = true;
-//		user.role = Role.USER;
+        user.setFullyRegistered(false);
+        user.setEnabled(true);
     }
 
     public void addConnectedAccount(UserConnectedAccount connectedAccount) {
@@ -121,6 +113,6 @@ public class User implements UserDetails {
 
     @Override
     public boolean isEnabled() {
-        return true;
+        return this.enabled;
     }
 }

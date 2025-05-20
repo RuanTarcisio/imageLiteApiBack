@@ -24,9 +24,13 @@ public class AuthService {
 
         var user = service.getByEmail(email);
 
+        if (!user.isEnabled()) {
+            response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Conta não ativada. Verifique seu e-mail.");
+            return false;
+        }
+
         if (passwordEncoder.matches(password, user.getPassword())) {
-            var token=  jwtService.generateToken(user);
-            authHandlerUtil.authenticateUser(user, response);
+            authHandlerUtil.authenticateUser(user, false, response);
             return true;
         }
         return false;

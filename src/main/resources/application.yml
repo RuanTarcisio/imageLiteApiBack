@@ -1,18 +1,21 @@
 spring:
+  profiles:
+    active:
+
   datasource:
     url: jdbc:postgresql://localhost:5432/imageliteapi
     username: postgres
     password: senh@BD
     driver-class-name: org.postgresql.Driver
 
-  jpa: 
+  jpa:
     database: POSTGRESQL
     hibernate:
-      ddl-auto: update
+      ddl-auto: none
     show-sql: true
     open-in-view: false
-  servlet: 
-    multipart: 
+  servlet:
+    multipart:
       max-file-size: 20MB
       max-request-size: 20MB
   security:
@@ -39,6 +42,7 @@ spring:
           starttls:
             enable: true
 
+
 logging:
   level:
     org.springframework.security: DEBUG
@@ -50,29 +54,4 @@ app:
   base-url: http://localhost:8080
   allowed-origins: http://localhost:3000
   login-page-url: ${app.base-url}/auth/login
-  login-success-url: http://localhost:3000/callback
-#  spring.security.oauth2.client.registration.google.client-secret=${GOOGLE_CLIENT_SECRET}
-#  spring.security.oauth2.client.registration.google.scope=profile,email
-#  spring.security.oauth2.client.registration.google.redirect-uri={baseUrl}/login/oauth2/code/google
-#  spring.security.oauth2.client.registration.google.authorization-grant-type=authorization_code
-#  spring.security.oauth2.client.registration.google.client-name=Google
-#  spring.security.oauth2.client.registration.github.client-id=${GITHUB_CLIENT_ID}
-#  spring.security.oauth2.client.registration.github.client-secret=${GITHUB_CLIENT_SECRET}
-#  spring.security.oauth2.client.registration.github.scope=user:email
-#  spring.security.oauth2.client.registration.github.redirect-uri={baseUrl}/login/oauth2/code/github
-#  spring.security.oauth2.client.registration.github.authorization-grant-type=authorization_code
-#  spring.security.oauth2.client.registration.github.client-name=GitHub
-
-#spring.datasource.url=jdbc:postgresql://localhost:5432/imageliteapi
-#spring.datasource.username=postgres
-#spring.datasource.password=senh@BD
-
-#spring.jpa.hibernate.ddl-auto=create
-#spring.jpa.show-sql=true
-#spring.jpa.properties.hibernate.format_sql=true
-#spring.jpa.open-in-view=false
-
-
-#api.security.token.secret = 98b3a9198243172be6a1ecb688567f9905c93250f489c1fa0a4bab507956ebea 
-#api.security.token.expiration = 864000000
-#api.security.token.secret = ${JWT_SECRET}
+  login-success-url: http://localhost/callback

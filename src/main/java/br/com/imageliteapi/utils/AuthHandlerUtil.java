@@ -24,7 +24,7 @@ public class AuthHandlerUtil {
     private final boolean isProduction = false;
     private final ApplicationProperties applicationProperties;
 
-    public void authenticateUser(User user, HttpServletResponse response) throws IOException {
+    public void authenticateUser(User user, boolean isSoccial, HttpServletResponse response) throws IOException {
         try {
 
             UsernamePasswordAuthenticationToken authenticationToken =
@@ -41,7 +41,8 @@ public class AuthHandlerUtil {
             );
             response.addHeader("Set-Cookie", cookieHeader);
 
-            response.sendRedirect(applicationProperties.getLoginSuccessUrl());
+            if(isSoccial)
+                response.sendRedirect(applicationProperties.getLoginSuccessUrl());
 
         } catch (Exception e) {
             log.error("Error during user authentication", e);

@@ -42,7 +42,7 @@ public class Oauth2LoginSuccessHandler implements AuthenticationSuccessHandler {
             Optional<UserConnectedAccount> connectedAccount = connectedAccountRepository.findByProviderAndProviderId(provider, providerId);
             if (connectedAccount.isPresent()) {
                 log.info("User already connected - UserId: {}", connectedAccount.get().getUser().getId());
-                authHandlerUtil.authenticateUser(connectedAccount.get().getUser(), response);
+                authHandlerUtil.authenticateUser(connectedAccount.get().getUser(), true, response);
                 return;
             }
 
@@ -53,11 +53,11 @@ public class Oauth2LoginSuccessHandler implements AuthenticationSuccessHandler {
                 existingUser.addConnectedAccount(newConnectedAccount);
                 existingUser = userRepository.save(existingUser);
                 connectedAccountRepository.save(newConnectedAccount);
-                authHandlerUtil.authenticateUser(existingUser, response);
+                authHandlerUtil.authenticateUser(existingUser, true, response);
             } else {
                 log.info("Creating new user from OAuth2");
                 User newUser = createUserFromOauth2User(authenticationToken);
-                authHandlerUtil.authenticateUser(newUser, response);
+                authHandlerUtil.authenticateUser(newUser, true, response);
             }
         } catch (Exception e) {
             log.error("Error during OAuth2 login success handling", e);

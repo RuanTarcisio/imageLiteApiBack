@@ -8,9 +8,15 @@ import br.com.imageliteapi.service.AuthService;
 import br.com.imageliteapi.service.UserService;
 import br.com.imageliteapi.service.validation.exception.DuplicatedTupleException;
 import br.com.imageliteapi.utils.AuthHandlerUtil;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -29,8 +35,9 @@ import java.util.HashMap;
 import java.util.Map;
 
 @RequiredArgsConstructor
-@RestController
 @RequestMapping("/v1/auth")
+@RestController
+@Tag(name = "Autenticação", description = "Endpoints para autenticação de usuários")
 public class AuthController {
 
     private final UserService userService;
@@ -38,59 +45,59 @@ public class AuthController {
     private final AuthService authService;
     private final AuthHandlerUtil authHandlerUtil;
 
-
+    @Operation(summary = "Cadastrar novo usuário", description = "Realiza o cadastro de um novo usuário com envio de dados via formulário")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "201", description = "Usuário criado com sucesso"),
+            @ApiResponse(responseCode = "409", description = "Usuário já existe"),
+    })
     @PostMapping(value = "/signup", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ResponseEntity<?> save(@ModelAttribute @Valid InputUserRegister dto) {
+    public ResponseEntity<?> save(
+            @Parameter(description = "Dados do usuário para cadastro", required = true)
+            @ModelAttribute @Valid InputUserRegister dto) {
         try {
             User user = userMapper.inputToUser(dto);
             userService.save(dto);
-            URI uri = ServletUriComponentsBuilder.fromCurrentRequest().path("/{id}").buildAndExpand(user.getId())
+            URI uri = ServletUriComponentsBuilder.fromCurrentRequest()
+                    .path("/{id}")
+                    .buildAndExpand(user.getId())
                     .toUri();
             return ResponseEntity.created(uri).build();
         } catch (DuplicatedTupleException e) {
-            Map<String, String> jsonResultado = Map.of("error", e.getMessage());
-            return ResponseEntity.status(HttpStatus.CONFLICT).body(jsonResultado);
+            return ResponseEntity.status(HttpStatus.CONFLICT).body(Map.of("error", e.getMessage()));
         }
     }
 
-@GetMapping("/check-session")
-public ResponseEntity<?> checkSession(@AuthenticationPrincipal User user, HttpServletResponse response) {
-    if (user == null) {
-        var expiredCookie = authHandlerUtil.expiredSession();
-        response.addHeader("Set-Cookie", expiredCookie);
-        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+    @Operation(summary = "Checar sessão ativa", description = "Verifica se a sessão do usuário ainda está ativa")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Sessão válida"),
+            @ApiResponse(responseCode = "401", description = "Sessão expirada ou inválida"),
+    })
+    @GetMapping("/check-session")
+    @Cacheable(value = "userSession", key = "#principal.id")
+    public ResponseEntity<?> checkSession(
+            @Parameter(hidden = true) @AuthenticationPrincipal User user,
+            HttpServletResponse response) {
+        if (user == null) {
+
+            var expiredCookie = authHandlerUtil.expiredSession();
+            response.addHeader("Set-Cookie", expiredCookie);
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+
+        Map<String, Object> object = new HashMap<>();
+        object.put("id", user.getId());
+        object.put("email", user.getEmail());
+        object.put("name", user.getName());
+        object.put("profileImage", user.getProfileImageUrl());
+
+        return ResponseEntity.ok(object);
     }
 
-    Map<String, Object> object = new HashMap<>();
-    object.put("id", user.getId());
-    object.put("email", user.getEmail());
-    object.put("name", user.getName());
-    object.put("profileImage", user.getProfileImageUrl());
-
-    return ResponseEntity.ok(object);
-}
-
-//    @GetMapping("/check-session")
-//    public ResponseEntity<?> checkSession(Authentication authentication) {
-//        if (authentication == null || !authentication.isAuthenticated()) {
-//            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
-//        }
-//
-//        // Obter detalhes do usuário autenticado
-//        String email = authentication.getName();
-//        User user = userService.getByEmail(email);
-//
-//        // Retornar dados básicos do usuário
-//        Map<String, Object> response = new HashMap<>();
-//        response.put("id", user.getId());
-//        response.put("email", user.getEmail());
-//        response.put("name", user.getName());
-//        response.put("profileImage", user.getProfileImageUrl());
-//
-//        return ResponseEntity.ok(response);
-//    }
-
-
+    @Operation(summary = "Autenticar usuário", description = "Realiza o login do usuário e seta o cookie de sessão")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Login realizado com sucesso"),
+            @ApiResponse(responseCode = "401", description = "Credenciais inválidas"),
+    })
     @PostMapping("/signin")
     public ResponseEntity<?> authenticate(
             @RequestBody CredentialsDTO credentials,
@@ -102,17 +109,18 @@ public ResponseEntity<?> checkSession(@AuthenticationPrincipal User user, HttpSe
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Credenciais inválidas");
         }
 
-        return ResponseEntity.ok().build(); // status 200, cookie já foi setado
+        return ResponseEntity.ok().build();
     }
 
+    @Operation(summary = "Logout do usuário", description = "Encerra a sessão do usuário e remove o cookie de autenticação")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Logout realizado com sucesso")
+    })
     @PostMapping("/logout")
     public ResponseEntity<Void> logout(HttpServletResponse response) {
-        // Invalida o cookie AUTH_TOKEN
         var expiredCookie = authHandlerUtil.expiredSession();
         response.addHeader("Set-Cookie", expiredCookie);
-
         SecurityContextHolder.clearContext();
-
         return ResponseEntity.ok().build();
     }
 }

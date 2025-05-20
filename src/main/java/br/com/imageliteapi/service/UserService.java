@@ -14,6 +14,7 @@ import br.com.imageliteapi.repository.UserRepository;
 import br.com.imageliteapi.security.AccessToken;
 import br.com.imageliteapi.security.JwtService;
 import br.com.imageliteapi.service.validation.exception.DuplicatedTupleException;
+import br.com.imageliteapi.utils.TokenUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -47,7 +48,6 @@ public class UserService {
         Optional<User> user = repository.findByEmail(email);
 
         if (user.isEmpty()) {
-            log.warn("Usuário com e-mail {} não encontrado!", email);
             throw new NoSuchElementException("Usuário não encontrado!");
         }
         return user.get();
@@ -58,7 +58,6 @@ public class UserService {
         Optional<User> user = repository.findById(id);
 
         if (user.isEmpty()) {
-            log.warn("Usuário com o ID {} não encontrado!", id);
             throw new NoSuchElementException("Usuário não encontrado!");
         }
         return user.get();
@@ -68,7 +67,6 @@ public class UserService {
         Optional<User> user = repository.findByCpf(cpf);
 
         if (user.isEmpty()) {
-            log.warn("Usuário com o CPF {} não encontrado!", cpf);
             throw new NoSuchElementException("Usuário não encontrado!");
         }
         return user.get();
@@ -77,21 +75,24 @@ public class UserService {
     @Transactional
     public User save(InputUserRegister input) {
 
-        var possibleUserByEmail = repository.existsByEmail(input.getEmail());
-        var possibleUserByCpf = repository.existsByCpf(input.getCpf());
+        var possibleUser= repository.existsByEmailOrCpf(input.getEmail(), input.getCpf());
 
-        if (possibleUserByEmail || possibleUserByCpf) {
+        if (possibleUser) {
             throw new DuplicatedTupleException("User already registered!");
         }
         User user = inputToUser(input);
+        user.setFullyRegistered(true);
         encodePassword(user);
+        user.setCodToken(TokenUtil.gerarTokenCurto());
+
         String template = mailTo.ativarUsuario(user);
         emailSenderService.enviarEmail(template, "ATIVACAO_DE_CONTA", user.getEmail());
         user = repository.save(user);
 
+
         if (input.getProfileImage() != null && !input.getProfileImage().isEmpty()) {
             ImageUser imageUser = mapToImage(input.getProfileImage());
-            imageUser.setUser(user); // Relaciona imagem ao usuário
+            imageUser.setUser(user);
             user.setImageUser(imageUser);String imageUrl = baseUrl + "/v1/users/profile/photo/" + user.getImageUser().getId();
             user.setProfileImageUrl(imageUrl);
             return user;
