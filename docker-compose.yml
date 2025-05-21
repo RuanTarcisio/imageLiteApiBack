@@ -14,7 +14,7 @@ services:
       - SMTP_PASS=${SMTP_PASS}
       - app.base-url=http://localhost:8080
     depends_on:
-      - db
+      - db-postgres
 
   next-frontend:
     image: ruantarciisio/imagelitefront:latest
@@ -32,28 +32,14 @@ services:
     depends_on:
       - spring-backend
       - next-frontend
-  db:
+  db-postgres:
     image: postgres
     restart: always
     environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: senh@BD
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASS}
       POSTGRES_DB: imageliteapi
     ports:
       - '5432:5432'
     volumes:
       - ./data:/var/lib/postgresql/data
-
-
-#  pgadmin:
-#    image: dpage/pgadmin4
-#    restart: always
-#    environment:
-#      PGADMIN_DEFAULT_PASSWORD: admin
-#      PGADMIN_DEFAULT_EMAIL: admin@admin.com
-#    ports:
-#      - '15432:80'
-#    depends_on:
-#      - db
-
-
